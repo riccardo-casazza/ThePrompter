@@ -1,0 +1,9 @@
+import_orchestrator:
+  cron: "0 3 * * *"  # Every day at 3:00 AM
+  class: "ImportOrchestratorJob"
+  description: "Import IMDb data, Plex library, and consolidate TMDB mappings"
+
+tmdb_refresh:
+  cron: "0 * * * *"  # Every hour at minute 0
+  class: "TmdbRefreshJob"
+  description: "Refresh TMDB metadata for movies and TV shows"

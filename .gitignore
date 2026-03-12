@@ -1,0 +1,51 @@
+# Ignore bundler config.
+/.bundle
+
+# Ignore the default SQLite database.
+/db/*.sqlite3
+/db/*.sqlite3-*
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any files in storage folder)
+/storage/*
+!/storage/.keep
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+/config/credentials/*.key
+
+# Ignore environment files with secrets
+.env
+.env.*
+!.env.example
+
+# Ignore IMDb data files
+/tmp/imdb_data/
+
+# Ignore IDE files
+.idea/
+.vscode/
+.metals/
+.bloop/
+.scala-build/
+*.swp
+*.swo
+
+# Ignore gem bundles
+vendor/bundle
+
+# Ignore legacy code
+/legacy/
+
+# Ignore Gemfile.lock in development (optional, remove if you want to track it)
+# Gemfile.lock

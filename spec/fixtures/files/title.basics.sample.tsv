@@ -1,0 +1,13 @@
+tconst	titleType	primaryTitle	originalTitle	isAdult	startYear	endYear	runtimeMinutes	genres
+tt0000001	short	Carmencita	Carmencita	0	1894	\N	1	Documentary,Short
+tt0000002	movie	The Clown and His Dogs	Le clown et ses chiens	0	1892	\N	5	Animation,Comedy
+tt0000003	tvSeries	Breaking Bad	Breaking Bad	0	2008	2013	49	Crime,Drama,Thriller
+tt0000004	tvEpisode	Pilot	Pilot	0	2008	\N	58	Crime,Drama,Thriller
+tt0000005	tvMiniSeries	Band of Brothers	Band of Brothers	0	2001	\N	594	Action,Drama,History
+tt0000006	movie	The Matrix	The Matrix	0	1999	\N	136	Action,Sci-Fi
+tt0000007	videoGame	The Last of Us	The Last of Us	0	2013	\N	\N	Action,Adventure,Drama
+tt0000008	tvSpecial	Christmas Special	Christmas Special	0	2020	\N	45	Comedy
+tt0000009	movie	Inception	Inception	0	2010	\N	148	Action,Adventure,Sci-Fi
+tt0000010	video	Behind the Scenes	Behind the Scenes	0	2005	\N	30	Documentary
+tt0000011	tvPilot	Unaired Pilot	Unaired Pilot	0	2015	\N	42	Drama
+tt0000012	tvSeries	The Office	The Office	0	2005	2013	22	Comedy

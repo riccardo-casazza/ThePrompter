@@ -1,0 +1,15 @@
+tconst	ordering	nconst	category	job	characters
+tt0000001	1	nm0000001	actor	\N	["The Hero"]
+tt0000001	2	nm0000002	actress	\N	["The Heroine"]
+tt0000001	3	nm0000003	director	\N	\N
+tt0000001	4	nm0000004	writer	screenplay	\N
+tt0000001	5	nm0000005	producer	executive producer	\N
+tt0000001	6	nm0000006	composer	\N	\N
+tt0000002	1	nm0000007	actor	\N	["Villain"]
+tt0000002	2	nm0000008	cinematographer	\N	\N
+tt0000002	3	nm0000009	editor	\N	\N
+tt0000002	4	nm0000010	self	\N	["Self"]
+tt0000003	1	nm0000011	director	\N	\N
+tt0000003	2	nm0000012	writer	story	\N
+tt0000003	3	nm0000013	composer	\N	\N
+tt0000003	4	nm0000014	production_designer	\N	\N
