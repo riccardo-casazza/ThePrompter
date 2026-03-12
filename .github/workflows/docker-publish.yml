@@ -6,9 +6,31 @@ on:
       - main
     tags:
       - 'v*'
+    paths:
+      - 'app/**'
+      - 'bin/**'
+      - 'config/**'
+      - 'db/**'
+      - 'lib/**'
+      - 'Dockerfile'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'config.ru'
+      - 'Rakefile'
   pull_request:
     branches:
       - main
+    paths:
+      - 'app/**'
+      - 'bin/**'
+      - 'config/**'
+      - 'db/**'
+      - 'lib/**'
+      - 'Dockerfile'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - 'config.ru'
+      - 'Rakefile'
 
 env:
   REGISTRY: ghcr.io
