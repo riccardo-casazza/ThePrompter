@@ -67,6 +67,8 @@ docker-compose logs -f sidekiq
 
 ## Production Setup
 
+Docker images are automatically built and published to GitHub Container Registry on every push to `main`.
+
 ### 1. Create Production Docker Compose
 
 Create `docker-compose.prod.yml`:
@@ -74,7 +76,7 @@ Create `docker-compose.prod.yml`:
 ```yaml
 services:
   web:
-    build: .
+    image: ghcr.io/riccardo-casazza/theprompter:main
     command: bundle exec rails server -b 0.0.0.0
     ports:
       - "3000:3000"
@@ -85,7 +87,7 @@ services:
     restart: unless-stopped
 
   sidekiq:
-    build: .
+    image: ghcr.io/riccardo-casazza/theprompter:main
     command: bundle exec sidekiq
     env_file:
       - .env.production
@@ -126,11 +128,11 @@ Generate a secret key:
 docker-compose run --rm web bin/rails secret
 ```
 
-### 3. Build and Deploy
+### 3. Deploy
 
 ```bash
-# Build production images
-docker-compose -f docker-compose.prod.yml build
+# Pull the latest image
+docker-compose -f docker-compose.prod.yml pull
 
 # Run migrations
 docker-compose -f docker-compose.prod.yml run --rm web bin/rails db:migrate
@@ -168,8 +170,7 @@ docker-compose -f docker-compose.prod.yml restart
 docker-compose -f docker-compose.prod.yml down
 
 # Update and redeploy
-git pull
-docker-compose -f docker-compose.prod.yml build
+docker-compose -f docker-compose.prod.yml pull
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
