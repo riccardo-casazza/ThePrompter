@@ -37,10 +37,28 @@
     </div>
 
     <div class="filter-group">
+      <%= label_tag :max_rating, "Max IMDB Rating" %>
+      <%= number_field_tag :max_rating, @max_rating,
+          min: 0,
+          max: 10,
+          step: 0.1,
+          placeholder: "e.g. 7.0" %>
+    </div>
+
+    <div class="filter-group">
       <%= label_tag :min_votes, "Min Votes" %>
       <%= number_field_tag :min_votes, @min_votes,
           min: 0,
           placeholder: "e.g. 10000" %>
+    </div>
+
+    <div class="filter-group">
+      <%= label_tag :max_my_rating, "Max My Rating" %>
+      <%= number_field_tag :max_my_rating, @max_my_rating,
+          min: 1,
+          max: 10,
+          step: 0.5,
+          placeholder: "e.g. 6.5" %>
     </div>
 
     <div class="filter-group filter-checkboxes">
@@ -72,6 +90,10 @@
         <%= label_tag :show_with_preferences, "Show with Preferences" %>
         <%= select_tag :show_with_preferences, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_with_preferences) %>
       </div>
+      <div>
+        <%= label_tag :show_in_collection, "Show in Collection" %>
+        <%= select_tag :show_in_collection, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_collection) %>
+      </div>
     </div>
 
     <button type="submit">Search</button>
@@ -98,6 +120,7 @@
         <th><%= sort_link("Title", "original_title") %></th>
         <th><%= sort_link("Year", "start_year") %></th>
         <th><%= sort_link("IMDB Rating", "average_rating") %></th>
+        <th>My Rating</th>
         <th><%= sort_link("in French Theaters", "theater_air_date_fr") %></th>
         <th><%= sort_link("in Italian Theaters", "theater_air_date_it") %></th>
         <th><%= sort_link("at Home", "home_air_date") %></th>
@@ -112,6 +135,7 @@
           <td><%= link_to title.original_title, "https://www.imdb.com/title/#{title.tconst}", target: "_blank" %></td>
           <td><%= title.start_year %></td>
           <td><%= title.average_rating ? "#{title.average_rating} (#{number_with_delimiter(title.num_votes)})" : "" %></td>
+          <td><%= title.my_rating %></td>
           <td><%= title.theater_air_date_fr %></td>
           <td><%= title.theater_air_date_it %></td>
           <td><%= title.home_air_date %></td>

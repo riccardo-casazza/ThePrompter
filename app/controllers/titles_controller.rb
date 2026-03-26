@@ -10,7 +10,10 @@ class TitlesController < ApplicationController
     @sort_direction = params[:sort_direction].presence || "asc"
 
     @min_rating = params[:min_rating].presence&.to_f
+    @max_rating = params[:max_rating].presence&.to_f
     @min_votes = params[:min_votes].presence&.to_i
+
+    @max_my_rating = params[:max_my_rating].presence&.to_f
 
     @show_in_french_theaters = params[:show_in_french_theaters].presence || "yes"
     @show_in_italian_theaters = params[:show_in_italian_theaters].presence || "yes"
@@ -19,6 +22,7 @@ class TitlesController < ApplicationController
     @show_already_watched = params[:show_already_watched].presence || "no"
     @show_wip = params[:show_wip].presence || "no"
     @show_with_preferences = params[:show_with_preferences].presence || "yes"
+    @show_in_collection = params[:show_in_collection].presence || "yes"
 
     @titles = []
     @error = nil
@@ -38,18 +42,26 @@ class TitlesController < ApplicationController
   end
 
   def filters_valid?
-    return false unless @start_year && @end_year && @title_type
+    return false unless @title_type.present?
 
-    @start_year <= @end_year &&
-      (@end_year - @start_year) <= MAX_YEAR_RANGE &&
-      @title_type.present?
+    # Year range validation only if years are provided
+    if @start_year && @end_year
+      return false unless @start_year <= @end_year
+      # Skip year range limit if filtering by Plex only (for delete candidates)
+      unless @show_in_plex == "only"
+        return false if (@end_year - @start_year) > MAX_YEAR_RANGE
+      end
+    end
+
+    true
   end
 
   def validation_error_message
     return "Please select a title type" if @title_type.blank?
-    return "Please select both start and end year" if @start_year.nil? || @end_year.nil?
-    return "End year must be greater than or equal to start year" if @end_year < @start_year
-    return "Year range cannot exceed #{MAX_YEAR_RANGE} years" if (@end_year - @start_year) > MAX_YEAR_RANGE
+    if @start_year && @end_year
+      return "End year must be greater than or equal to start year" if @end_year < @start_year
+      return "Year range cannot exceed #{MAX_YEAR_RANGE} years" if @show_in_plex != "only" && (@end_year - @start_year) > MAX_YEAR_RANGE
+    end
 
     nil
   end
@@ -66,16 +78,26 @@ class TitlesController < ApplicationController
         "title_movie_tmdb.theater_air_date_it",
         "title_movie_tmdb.home_air_date",
         "title_movie_tmdb.languages",
-        "CASE WHEN plex_library_items.tconst IS NOT NULL THEN true ELSE false END AS in_plex"
+        "CASE WHEN plex_library_items.tconst IS NOT NULL THEN true ELSE false END AS in_plex",
+        "plex_library_items.collections AS plex_collections",
+        "my_ratings.rating AS my_rating"
       )
       .joins("LEFT JOIN title_ratings ON title_basics.tconst = title_ratings.tconst")
       .joins("LEFT JOIN title_movie_tmdb ON title_basics.tconst = title_movie_tmdb.tconst")
       .joins("LEFT JOIN plex_library_items ON title_basics.tconst = plex_library_items.tconst")
+      .joins("LEFT JOIN my_ratings ON title_basics.tconst = my_ratings.tconst")
       .where(title_type: @title_type)
-      .where(start_year: @start_year..@end_year)
+
+    titles = titles.where(start_year: @start_year..@end_year) if @start_year && @end_year
 
     titles = titles.where("title_ratings.average_rating >= ?", @min_rating) if @min_rating
+    titles = titles.where("title_ratings.average_rating < ?", @max_rating) if @max_rating
     titles = titles.where("title_ratings.num_votes >= ?", @min_votes) if @min_votes
+
+    # Max my rating filter: only include titles where my rating is null OR below threshold
+    if @max_my_rating
+      titles = titles.where("my_ratings.rating IS NULL OR my_ratings.rating < ?", @max_my_rating)
+    end
 
     titles = apply_in_french_theaters_filter(titles)
     titles = apply_in_italian_theaters_filter(titles)
@@ -84,6 +106,7 @@ class TitlesController < ApplicationController
     titles = apply_already_watched_filter(titles)
     titles = apply_wip_filter(titles)
     titles = apply_with_preferences_filter(titles)
+    titles = apply_in_collection_filter(titles)
 
     titles = titles.distinct
     titles = apply_sorting(titles)
@@ -228,6 +251,18 @@ class TitlesController < ApplicationController
       scope.where("NOT (#{released_condition})", params)
     else # "no"
       scope.where(released_condition, params)
+    end
+  end
+
+  # In collection filter: "yes" = show all, "no" = exclude movies in collections, "only" = only in collections
+  def apply_in_collection_filter(scope)
+    return scope if @show_in_collection == "yes"
+
+    # Collections field is empty string or null when not in a collection
+    if @show_in_collection == "only"
+      scope.where("plex_library_items.collections IS NOT NULL AND plex_library_items.collections != ''")
+    else # "no"
+      scope.where("plex_library_items.collections IS NULL OR plex_library_items.collections = ''")
     end
   end
 end

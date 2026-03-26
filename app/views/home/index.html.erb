@@ -1,0 +1,19 @@
+<h1>ThePrompter</h1>
+
+<nav>
+  <ul>
+    <li><%= link_to "Browse Titles", titles_path %></li>
+    <li><%= link_to "Plex Delete Candidates", titles_path(
+      title_type: "movie",
+      max_rating: 6.5,
+      min_votes: 10000,
+      max_my_rating: 6.5,
+      show_in_plex: "only",
+      show_already_watched: "yes",
+      show_with_preferences: "no",
+      show_in_collection: "no",
+      sort_by: "average_rating",
+      sort_direction: "asc"
+    ) %></li>
+  </ul>
+</nav>
