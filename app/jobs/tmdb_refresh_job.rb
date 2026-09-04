@@ -6,6 +6,7 @@ class TmdbRefreshJob
   # Movies and TV shows are refreshed in parallel
 
   def perform
+    Setting.job_started!("tmdb_refresh")
     Rails.logger.info "Starting TMDB refresh..."
 
     batch = Sidekiq::Batch.new
@@ -18,11 +19,15 @@ class TmdbRefreshJob
     end
 
     Rails.logger.info "TMDB refresh batch started: #{batch.bid}"
+  rescue StandardError => e
+    Setting.job_failed!("tmdb_refresh", e.message)
+    raise
   end
 
   class Callbacks
     def complete(status, options)
       Rails.logger.info "TMDB refresh complete!"
+      Setting.job_completed!("tmdb_refresh")
     end
   end
 end

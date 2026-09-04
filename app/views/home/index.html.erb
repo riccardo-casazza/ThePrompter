@@ -18,3 +18,35 @@
     ) %></li>
   </ul>
 </nav>
+
+<% if @job_statuses.any? %>
+  <section class="job-statuses">
+    <h2>Background Jobs Status</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Job</th>
+          <th>Last Run</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @job_statuses.each do |job| %>
+          <tr>
+            <td><%= job[:name].titleize %></td>
+            <td>
+              <% if job[:last_run] %>
+                <%= time_tag job[:last_run], time_ago_in_words(job[:last_run]) + " ago" %>
+              <% else %>
+                Never
+              <% end %>
+            </td>
+            <td class="status-<%= job[:status] %>">
+              <%= job[:status]&.titleize || "Unknown" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+<% end %>

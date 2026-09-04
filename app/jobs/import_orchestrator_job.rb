@@ -10,6 +10,7 @@ class ImportOrchestratorJob
   # TMDB refresh runs separately via TmdbRefreshJob (hourly)
 
   def perform
+    Setting.job_started!("import_orchestrator")
     Rails.logger.info "Starting import orchestration..."
 
     phase1_batch = Sidekiq::Batch.new
@@ -24,6 +25,9 @@ class ImportOrchestratorJob
     end
 
     Rails.logger.info "Phase 1 batch started: #{phase1_batch.bid}"
+  rescue StandardError => e
+    Setting.job_failed!("import_orchestrator", e.message)
+    raise
   end
 
   class Callbacks
@@ -57,6 +61,7 @@ class ImportOrchestratorJob
 
     def phase3_complete(status, options)
       Rails.logger.info "Import orchestration complete!"
+      Setting.job_completed!("import_orchestrator")
     end
   end
 end
