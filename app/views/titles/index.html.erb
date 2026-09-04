@@ -94,6 +94,10 @@
         <%= label_tag :show_in_collection, "Show in Collection" %>
         <%= select_tag :show_in_collection, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_collection) %>
       </div>
+      <div>
+        <%= label_tag :show_documentaries, "Show Documentaries" %>
+        <%= select_tag :show_documentaries, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_documentaries) %>
+      </div>
     </div>
 
     <button type="submit">Search</button>

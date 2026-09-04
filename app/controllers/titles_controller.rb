@@ -23,6 +23,7 @@ class TitlesController < ApplicationController
     @show_wip = params[:show_wip].presence || "no"
     @show_with_preferences = params[:show_with_preferences].presence || "yes"
     @show_in_collection = params[:show_in_collection].presence || "yes"
+    @show_documentaries = params[:show_documentaries].presence || "no"
 
     @titles = []
     @error = nil
@@ -99,6 +100,9 @@ class TitlesController < ApplicationController
       titles = titles.where("my_ratings.rating IS NULL OR my_ratings.rating < ?", @max_my_rating)
     end
 
+    # Always exclude blacklisted titles
+    titles = titles.where.not(tconst: BlacklistedTitle.select(:tconst))
+
     titles = apply_in_french_theaters_filter(titles)
     titles = apply_in_italian_theaters_filter(titles)
     titles = apply_at_home_filter(titles)
@@ -107,6 +111,7 @@ class TitlesController < ApplicationController
     titles = apply_wip_filter(titles)
     titles = apply_with_preferences_filter(titles)
     titles = apply_in_collection_filter(titles)
+    titles = apply_documentaries_filter(titles)
 
     titles = titles.distinct
     titles = apply_sorting(titles)
@@ -263,6 +268,17 @@ class TitlesController < ApplicationController
       scope.where("plex_library_items.collections IS NOT NULL AND plex_library_items.collections != ''")
     else # "no"
       scope.where("plex_library_items.collections IS NULL OR plex_library_items.collections = ''")
+    end
+  end
+
+  # Documentaries filter: "yes" = show all, "no" = exclude documentaries, "only" = only documentaries
+  def apply_documentaries_filter(scope)
+    return scope if @show_documentaries == "yes"
+
+    if @show_documentaries == "only"
+      scope.where("title_basics.genres LIKE ?", "%Documentary%")
+    else # "no"
+      scope.where("title_basics.genres NOT LIKE ? OR title_basics.genres IS NULL", "%Documentary%")
     end
   end
 end
