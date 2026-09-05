@@ -7,6 +7,10 @@ module Tmdb
     HOME_RELEASE_TYPES = [4, 5, 6].freeze
     THEATER_COUNTRIES = %w[FR IT].freeze
 
+    # Process this many movies per hourly run to avoid timeouts
+    # At this rate, 871K movies will take ~870 hours (~36 days) to complete
+    BATCH_SIZE = 1000
+
     def initialize(client: nil)
       @client = client || Client.new
       @stats = { updated: 0, not_found: 0, errors: 0 }
@@ -14,13 +18,18 @@ module Tmdb
     end
 
     def refresh
-      total = movies_to_refresh.count
-      Rails.logger.info "Found #{total} movies needing refresh"
+      total_pending = TitleMovieTmdb.needs_update.count
+      batch = movies_to_refresh.limit(BATCH_SIZE).to_a
+      batch_size = batch.size
 
-      movies_to_refresh.find_each.with_index do |movie, index|
+      Rails.logger.info "Found #{total_pending} movies needing refresh, processing batch of #{batch_size}"
+
+      batch.each.with_index do |movie, index|
         refresh_movie(movie)
-        log_progress(index + 1, total)
+        log_progress(index + 1, batch_size)
       end
+
+      Rails.logger.info "Batch complete: #{@stats[:updated]} updated, #{@stats[:not_found]} not found, #{@stats[:errors]} errors. Remaining: #{total_pending - batch_size}"
 
       @stats
     end

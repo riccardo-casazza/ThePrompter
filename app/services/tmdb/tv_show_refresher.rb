@@ -2,6 +2,9 @@ module Tmdb
   class TvShowRefresher
     ENDED_STATUSES = ["Ended", "Canceled"].freeze
 
+    # Process this many TV shows per hourly run to avoid timeouts
+    BATCH_SIZE = 1000
+
     def initialize(client: nil)
       @client = client || Client.new
       @stats = { updated: 0, not_found: 0, errors: 0 }
@@ -9,13 +12,18 @@ module Tmdb
     end
 
     def refresh
-      total = tv_shows_to_refresh.count
-      Rails.logger.info "Found #{total} TV shows needing refresh"
+      total_pending = TitleTvTmdb.needs_update.count
+      batch = tv_shows_to_refresh.limit(BATCH_SIZE).to_a
+      batch_size = batch.size
 
-      tv_shows_to_refresh.find_each.with_index do |tv_show, index|
+      Rails.logger.info "Found #{total_pending} TV shows needing refresh, processing batch of #{batch_size}"
+
+      batch.each.with_index do |tv_show, index|
         refresh_tv_show(tv_show)
-        log_progress(index + 1, total)
+        log_progress(index + 1, batch_size)
       end
+
+      Rails.logger.info "Batch complete: #{@stats[:updated]} updated, #{@stats[:not_found]} not found, #{@stats[:errors]} errors. Remaining: #{total_pending - batch_size}"
 
       @stats
     end
