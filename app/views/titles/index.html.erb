@@ -100,6 +100,18 @@
       </div>
     </div>
 
+    <div class="filter-group">
+      <%= label_tag :language, "Language (ISO code)" %>
+      <%= text_field_tag :language, @language,
+          placeholder: "e.g., en, fr, it",
+          maxlength: 10 %>
+    </div>
+
+    <div class="filter-group">
+      <%= check_box_tag :require_language_data, "1", @require_language_data %>
+      <%= label_tag :require_language_data, "Only show titles with language data" %>
+    </div>
+
     <button type="submit">Search</button>
   <% end %>
 </div>

@@ -25,6 +25,9 @@ class TitlesController < ApplicationController
     @show_in_collection = params[:show_in_collection].presence || "yes"
     @show_documentaries = params[:show_documentaries].presence || "no"
 
+    @language = params[:language].presence&.strip&.downcase
+    @require_language_data = params[:require_language_data] == "1"
+
     @titles = []
     @error = nil
 
@@ -112,6 +115,7 @@ class TitlesController < ApplicationController
     titles = apply_with_preferences_filter(titles)
     titles = apply_in_collection_filter(titles)
     titles = apply_documentaries_filter(titles)
+    titles = apply_language_filter(titles)
 
     titles = titles.distinct
     titles = apply_sorting(titles)
@@ -279,6 +283,20 @@ class TitlesController < ApplicationController
       scope.where("title_basics.genres LIKE ?", "%Documentary%")
     else # "no"
       scope.where("title_basics.genres NOT LIKE ? OR title_basics.genres IS NULL", "%Documentary%")
+    end
+  end
+
+  # Language filter: filter by language code (e.g., "en", "fr") and optionally require language data
+  def apply_language_filter(scope)
+    scope = scope.where("title_movie_tmdb.languages IS NOT NULL AND title_movie_tmdb.languages != ''") if @require_language_data
+
+    if @language.present?
+      # Match the language code either standalone or as part of comma-separated list
+      # e.g., "en" matches "en", "en, fr", "de, en, it"
+      scope.where("title_movie_tmdb.languages LIKE ? OR title_movie_tmdb.languages LIKE ? OR title_movie_tmdb.languages LIKE ? OR title_movie_tmdb.languages = ?",
+                  "#{@language},%", "%, #{@language}", "%, #{@language},%", @language)
+    else
+      scope
     end
   end
 end
