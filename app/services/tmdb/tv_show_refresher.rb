@@ -5,6 +5,13 @@ module Tmdb
     # Process this many TV shows per hourly run to avoid timeouts
     BATCH_SIZE = 1000
 
+    # Retry configuration for connection errors
+    MAX_CONNECTION_RETRIES = 2
+    RETRY_DELAY_SECONDS = 5
+
+    # Custom error for unrecoverable connection failures
+    class ConnectionFailedError < StandardError; end
+
     def initialize(client: nil)
       @client = client || Client.new
       @stats = { updated: 0, not_found: 0, errors: 0 }
@@ -12,8 +19,8 @@ module Tmdb
     end
 
     def refresh
-      total_pending = TitleTvTmdb.needs_update.count
-      batch = tv_shows_to_refresh.limit(BATCH_SIZE).to_a
+      total_pending = with_connection_retry { TitleTvTmdb.needs_update.count }
+      batch = with_connection_retry { tv_shows_to_refresh.limit(BATCH_SIZE).to_a }
       batch_size = batch.size
 
       Rails.logger.info "Found #{total_pending} TV shows needing refresh, processing batch of #{batch_size}"
@@ -32,16 +39,19 @@ module Tmdb
       tmdb_id = find_tmdb_id(tv_show.tconst)
 
       if tmdb_id.nil?
-        mark_as_not_found(tv_show)
+        with_connection_retry { mark_as_not_found(tv_show) }
         @stats[:not_found] += 1
         return
       end
 
-      update_tv_show_data(tv_show, tmdb_id)
+      with_connection_retry { update_tv_show_data(tv_show, tmdb_id) }
       @stats[:updated] += 1
     rescue Client::ApiError => e
       Rails.logger.warn "TMDB API error for #{tv_show.tconst}: #{e.message}"
       @stats[:errors] += 1
+    rescue ConnectionFailedError
+      # Re-raise connection failures to stop the job
+      raise
     rescue => e
       Rails.logger.error "Error refreshing TV show #{tv_show.tconst}: #{e.message}"
       @stats[:errors] += 1
@@ -142,6 +152,24 @@ module Tmdb
 
     def mark_as_not_found(tv_show)
       tv_show.update!(last_update: Time.current, tmdb_not_found: true)
+    end
+
+    def with_connection_retry
+      retries = 0
+      begin
+        yield
+      rescue PG::ConnectionBad, ActiveRecord::ConnectionNotEstablished => e
+        retries += 1
+        if retries <= MAX_CONNECTION_RETRIES
+          Rails.logger.warn "Database connection error (attempt #{retries}/#{MAX_CONNECTION_RETRIES}): #{e.message}. Retrying in #{RETRY_DELAY_SECONDS}s..."
+          sleep(RETRY_DELAY_SECONDS)
+          ActiveRecord::Base.connection.reconnect!
+          retry
+        else
+          Rails.logger.error "Database connection failed after #{MAX_CONNECTION_RETRIES} retries. Stopping job."
+          raise ConnectionFailedError, "Database connection failed after #{MAX_CONNECTION_RETRIES} retries: #{e.message}"
+        end
+      end
     end
   end
 end
