@@ -103,15 +103,43 @@ module Imdb
     end
 
     def click_export_button(browser)
+      # IMDb changed UI in 2025 - Export is now in a three-dot (kebab) menu
+      # Try new UI first: find the three-dot menu button
+      menu_button = browser.at_css("[data-testid='list-page-mc-dropdown-button']") ||
+                    browser.at_css("[aria-label='More']") ||
+                    browser.at_css(".ipc-icon-button[aria-haspopup='true']")
+
+      if menu_button
+        Rails.logger.info "Found menu button (new UI), clicking..."
+        browser.execute("arguments[0].click()", menu_button)
+        sleep(1)
+
+        # Find Export option in the dropdown
+        export_option = browser.at_xpath("//span[contains(text(), 'Export')]") ||
+                        browser.at_css("[data-testid='list-page-mc-export']") ||
+                        browser.at_xpath("//button[contains(., 'Export')]")
+
+        if export_option
+          Rails.logger.info "Found Export option in menu, clicking..."
+          browser.execute("arguments[0].click()", export_option)
+          sleep(2)
+          return
+        end
+      end
+
+      # Fallback: try old UI with standalone Export button
       buttons = browser.css(".ipc-responsive-button")
       export_button = buttons.find { |b| b.attribute("aria-label") == "Export" }
 
       if export_button
-        Rails.logger.info "Found Export button, clicking..."
+        Rails.logger.info "Found Export button (old UI), clicking..."
         browser.execute("arguments[0].click()", export_button)
         sleep(2)
       else
-        raise "Export button not found on ratings page"
+        # Log page content for debugging
+        Rails.logger.error "Could not find export button. Page title: #{browser.title}"
+        Rails.logger.error "Page URL: #{browser.current_url}"
+        raise "Export button not found on ratings page - IMDb UI may have changed"
       end
     end
 
