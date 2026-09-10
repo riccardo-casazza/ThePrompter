@@ -71,10 +71,18 @@ class Setting < ApplicationRecord
         .pluck(:key, :value)
         .map do |key, time_str|
           job_name = key.delete_prefix(JOB_LAST_RUN_PREFIX)
+          last_run = (Time.parse(time_str) rescue nil)
+          status = job_last_status(job_name)
+
+          # Mark as stale if running for more than 1 hour (jobs should complete in ~5-10 minutes)
+          if status == "running" && last_run && last_run < 1.hour.ago
+            status = "stale"
+          end
+
           {
             name: job_name,
-            last_run: (Time.parse(time_str) rescue nil),
-            status: job_last_status(job_name)
+            last_run: last_run,
+            status: status
           }
         end
         .sort_by { |job| job[:last_run] || Time.at(0) }
