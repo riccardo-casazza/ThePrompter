@@ -31,8 +31,18 @@ class TitlesController < ApplicationController
     @titles = []
     @error = nil
 
+    # Debug logging
+    Rails.logger.info "=== TITLES SEARCH DEBUG ==="
+    Rails.logger.info "params: #{params.to_unsafe_h.inspect}"
+    Rails.logger.info "title_type: #{@title_type.inspect}"
+    Rails.logger.info "start_year: #{@start_year.inspect}, end_year: #{@end_year.inspect}"
+    Rails.logger.info "min_rating raw: #{params[:min_rating].inspect}, parsed: #{@min_rating.inspect}"
+    Rails.logger.info "filters_valid?: #{filters_valid?}"
+
     if filters_valid?
       @titles = fetch_titles
+      Rails.logger.info "titles count: #{@titles.size}"
+      Rails.logger.info "SQL: #{@titles.to_sql}" if @titles.respond_to?(:to_sql)
       @preferences_by_tconst = fetch_preferences_for_titles(@titles)
     elsif params[:start_year].present? || params[:title_type].present?
       @error = validation_error_message
