@@ -70,21 +70,15 @@ module Tmdb
     # Priority order:
     # 1. Never updated (last_update NULL)
     # 2. Oldest updates (stale data)
-    # 3. Movies with preferred people (more likely to watch)
-    # 4. Newest movies (recent releases more relevant)
-    # 5. Higher vote count (more popular = more likely to watch)
+    # 3. Newest movies (recent releases more relevant)
+    # 4. Higher vote count (more popular = more likely to watch)
     def movies_to_refresh
       TitleMovieTmdb
         .needs_update
         .joins("LEFT JOIN title_basics ON title_movie_tmdb.tconst = title_basics.tconst")
         .joins("LEFT JOIN title_ratings ON title_movie_tmdb.tconst = title_ratings.tconst")
-        .select("title_movie_tmdb.*, " \
-          "CASE WHEN EXISTS (SELECT 1 FROM title_principals " \
-          "INNER JOIN my_preferences ON title_principals.nconst = my_preferences.nconst " \
-          "WHERE title_principals.tconst = title_movie_tmdb.tconst) THEN 1 ELSE 0 END AS has_preferences")
         .order(
           Arel.sql("title_movie_tmdb.last_update ASC NULLS FIRST"),
-          Arel.sql("has_preferences DESC"),
           Arel.sql("title_basics.start_year DESC NULLS LAST"),
           Arel.sql("title_ratings.num_votes DESC NULLS LAST")
         )
