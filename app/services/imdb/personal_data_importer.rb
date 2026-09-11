@@ -30,6 +30,7 @@ module Imdb
       PREFERENCE_LISTS.each do |category, url|
         Rails.logger.info "Scraping #{category} list: #{url}"
         persons = @scraper.scrape_persons_list(url, category.to_s)
+        raise "No #{category}s found at #{url} - scraping may have failed" if persons.empty?
         Rails.logger.info "Found #{persons.size} #{category}s"
         all_persons.concat(persons)
       end
@@ -48,7 +49,12 @@ module Imdb
         }
       end
 
-      MyPreference.upsert_all(records, unique_by: [:nconst, :category]) if records.any?
+      raise "No preferences to import" if records.empty?
+      MyPreference.upsert_all(records, unique_by: [:nconst, :category])
+
+      # Verify import succeeded
+      actual_count = MyPreference.count
+      raise "Import verification failed: expected #{records.size}, got #{actual_count}" if actual_count != records.size
 
       { imported: records.size }
     end
@@ -57,6 +63,7 @@ module Imdb
       Rails.logger.info "Importing blacklist from: #{BLACKLIST_URL}"
 
       tconsts = @scraper.scrape_titles_list(BLACKLIST_URL)
+      raise "No blacklisted titles found at #{BLACKLIST_URL} - scraping may have failed" if tconsts.empty?
       Rails.logger.info "Found #{tconsts.size} blacklisted titles"
 
       # Truncate and import
@@ -71,7 +78,11 @@ module Imdb
         }
       end
 
-      BlacklistedTitle.upsert_all(records, unique_by: :tconst) if records.any?
+      BlacklistedTitle.upsert_all(records, unique_by: :tconst)
+
+      # Verify import succeeded
+      actual_count = BlacklistedTitle.count
+      raise "Import verification failed: expected #{records.size}, got #{actual_count}" if actual_count != records.size
 
       { imported: records.size }
     end
@@ -90,6 +101,7 @@ module Imdb
       )
 
       ratings = exporter.export
+      raise "No ratings exported - export may have failed" if ratings.empty?
       Rails.logger.info "Exported #{ratings.size} ratings"
 
       # Truncate and import
@@ -105,7 +117,11 @@ module Imdb
         }
       end
 
-      MyRating.upsert_all(records, unique_by: :tconst) if records.any?
+      MyRating.upsert_all(records, unique_by: :tconst)
+
+      # Verify import succeeded
+      actual_count = MyRating.count
+      raise "Import verification failed: expected #{records.size}, got #{actual_count}" if actual_count != records.size
 
       { imported: records.size }
     end
