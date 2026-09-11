@@ -7,3 +7,8 @@ tmdb_refresh:
   cron: "0 * * * *"  # Every hour at minute 0
   class: "TmdbRefreshJob"
   description: "Refresh TMDB metadata for movies and TV shows"
+
+production_region:
+  cron: "0 4 * * *"  # Every day at 4:00 AM (after import orchestrator)
+  class: "ProductionRegionJob"
+  description: "Compute production regions from country and language data"

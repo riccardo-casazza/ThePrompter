@@ -103,9 +103,18 @@ module Tmdb
         next_air_date: extract_next_air_date(details),
         continuing: extract_continuing_status(details),
         languages: extract_languages(details),
+        original_language: details["original_language"]&.downcase,
+        production_countries: extract_production_countries(details),
         last_update: Time.current,
         tmdb_not_found: false
       )
+    end
+
+    def extract_production_countries(details)
+      countries = details["production_countries"] || []
+      return nil if countries.empty?
+
+      countries.map { |c| c["iso_3166_1"] }.compact.join(", ")
     end
 
     def extract_next_air_date(details)

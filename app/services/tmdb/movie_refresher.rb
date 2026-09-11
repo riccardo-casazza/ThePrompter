@@ -110,6 +110,8 @@ module Tmdb
         theater_air_date_fr: release_data[:theater_air_date_fr],
         theater_air_date_it: release_data[:theater_air_date_it],
         languages: details_data[:languages],
+        original_language: details_data[:original_language],
+        production_countries: details_data[:production_countries],
         last_update: Time.current,
         tmdb_not_found: false
       )
@@ -152,8 +154,18 @@ module Tmdb
     def fetch_movie_details(tmdb_id)
       response = client.movie_details(tmdb_id)
 
-      languages = extract_languages(response)
-      { languages: languages }
+      {
+        languages: extract_languages(response),
+        original_language: response["original_language"]&.downcase,
+        production_countries: extract_production_countries(response)
+      }
+    end
+
+    def extract_production_countries(response)
+      countries = response["production_countries"] || []
+      return nil if countries.empty?
+
+      countries.map { |c| c["iso_3166_1"] }.compact.join(", ")
     end
 
     def extract_languages(response)
