@@ -28,6 +28,9 @@ class TitlesController < ApplicationController
     @language = params[:language].presence&.strip&.downcase
     @require_language_data = params[:require_language_data] == "1"
 
+    @production_regions = Array(params[:production_regions]).reject(&:blank?)
+    @available_regions = ProductionRegionMapper.all_regions
+
     @titles = []
     @error = nil
 
@@ -82,6 +85,7 @@ class TitlesController < ApplicationController
         "title_movie_tmdb.theater_air_date_it",
         "title_movie_tmdb.home_air_date",
         "title_movie_tmdb.languages",
+        "title_movie_tmdb.production_region",
         "CASE WHEN plex_library_items.tconst IS NOT NULL THEN true ELSE false END AS in_plex",
         "plex_library_items.collections AS plex_collections",
         "my_ratings.rating AS my_rating"
@@ -116,6 +120,7 @@ class TitlesController < ApplicationController
     titles = apply_in_collection_filter(titles)
     titles = apply_documentaries_filter(titles)
     titles = apply_language_filter(titles)
+    titles = apply_production_region_filter(titles)
 
     titles = titles.distinct
     titles = apply_sorting(titles)
@@ -298,5 +303,12 @@ class TitlesController < ApplicationController
     else
       scope
     end
+  end
+
+  # Production region filter: filter by selected production regions (multi-select)
+  def apply_production_region_filter(scope)
+    return scope if @production_regions.empty?
+
+    scope.where("title_movie_tmdb.production_region": @production_regions)
   end
 end

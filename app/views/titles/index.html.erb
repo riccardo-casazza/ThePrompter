@@ -112,6 +112,19 @@
       <%= label_tag :require_language_data, "Only show titles with language data" %>
     </div>
 
+    <fieldset class="filter-group">
+      <legend>Production Regions</legend>
+      <div class="region-checkboxes">
+        <% @available_regions.each do |region| %>
+          <label class="region-checkbox">
+            <%= check_box_tag "production_regions[]", region, @production_regions.include?(region) %>
+            <%= region %>
+          </label>
+        <% end %>
+      </div>
+      <small>Leave all unchecked to show all regions</small>
+    </fieldset>
+
     <button type="submit">Search</button>
   <% end %>
 </div>
@@ -142,6 +155,7 @@
         <th><%= sort_link("at Home", "home_air_date") %></th>
         <th><%= sort_link("in Plex", "in_plex") %></th>
         <th>Languages</th>
+        <th>Region</th>
         <th>My Preferences</th>
       </tr>
     </thead>
@@ -157,6 +171,7 @@
           <td><%= title.home_air_date %></td>
           <td><%= title.in_plex ? "✓" : "" %></td>
           <td><%= title.languages %></td>
+          <td><%= title.production_region %></td>
           <td><%= @preferences_by_tconst[title.tconst] %></td>
         </tr>
       <% end %>
