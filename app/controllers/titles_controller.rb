@@ -13,8 +13,6 @@ class TitlesController < ApplicationController
     @max_rating = params[:max_rating].presence&.to_f
     @min_votes = params[:min_votes].presence&.to_i
 
-    @max_my_rating = params[:max_my_rating].presence&.to_f
-
     @show_in_french_theaters = params[:show_in_french_theaters].presence || "yes"
     @show_in_italian_theaters = params[:show_in_italian_theaters].presence || "yes"
     @show_at_home = params[:show_at_home].presence || "yes"
@@ -52,8 +50,6 @@ class TitlesController < ApplicationController
     @min_rating = params[:min_rating].presence&.to_f
     @max_rating = params[:max_rating].presence&.to_f
     @min_votes = params[:min_votes].presence&.to_i
-
-    @max_my_rating = params[:max_my_rating].presence&.to_f
 
     @show_in_french_theaters = params[:show_in_french_theaters].presence || "yes"
     @show_in_italian_theaters = params[:show_in_italian_theaters].presence || "yes"
@@ -143,11 +139,6 @@ class TitlesController < ApplicationController
     titles = titles.where("title_ratings.average_rating >= ?", @min_rating) if @min_rating
     titles = titles.where("title_ratings.average_rating < ?", @max_rating) if @max_rating
     titles = titles.where("title_ratings.num_votes >= ?", @min_votes) if @min_votes
-
-    # Max my rating filter: only include titles where my rating is null OR below threshold
-    if @max_my_rating
-      titles = titles.where("my_ratings.rating IS NULL OR my_ratings.rating < ?", @max_my_rating)
-    end
 
     # Always exclude blacklisted titles
     titles = titles.where.not(tconst: BlacklistedTitle.select(:tconst))
@@ -397,10 +388,6 @@ class TitlesController < ApplicationController
     titles = titles.where("title_ratings.average_rating >= ?", @min_rating) if @min_rating
     titles = titles.where("title_ratings.average_rating < ?", @max_rating) if @max_rating
     titles = titles.where("title_ratings.num_votes >= ?", @min_votes) if @min_votes
-
-    if @max_my_rating
-      titles = titles.where("my_ratings.rating IS NULL OR my_ratings.rating < ?", @max_my_rating)
-    end
 
     titles = titles.where.not(tconst: BlacklistedTitle.select(:tconst))
 

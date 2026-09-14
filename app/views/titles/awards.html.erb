@@ -43,15 +43,6 @@
           placeholder: "e.g. 10000" %>
     </div>
 
-    <div class="filter-group">
-      <%= label_tag :max_my_rating, "Max My Rating" %>
-      <%= number_field_tag :max_my_rating, @max_my_rating,
-          min: 1,
-          max: 10,
-          step: 0.5,
-          placeholder: "e.g. 6.5" %>
-    </div>
-
     <div class="filter-group filter-checkboxes">
       <div>
         <%= label_tag :show_in_french_theaters, "Show in French Theaters" %>
