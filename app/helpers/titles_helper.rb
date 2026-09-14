@@ -14,7 +14,10 @@ module TitlesHelper
 
     link_params = request.query_parameters.merge(sort_by: column, sort_direction: direction)
 
-    link_to titles_path(link_params) do
+    # Use the current path (works for both titles and awards)
+    target_path = request.path == "/awards" ? awards_path(link_params) : titles_path(link_params)
+
+    link_to target_path do
       "#{label} <span class='sort-indicator'>#{indicator}</span>".html_safe
     end
   end

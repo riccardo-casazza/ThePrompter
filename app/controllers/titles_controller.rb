@@ -42,6 +42,48 @@ class TitlesController < ApplicationController
     end
   end
 
+  def awards
+    @start_year = params[:start_year].presence&.to_i
+    @end_year = params[:end_year].presence&.to_i
+    @title_type = "movie" # Awards are only for movies
+    @sort_by = params[:sort_by].presence || "start_year"
+    @sort_direction = params[:sort_direction].presence || "desc"
+
+    @min_rating = params[:min_rating].presence&.to_f
+    @max_rating = params[:max_rating].presence&.to_f
+    @min_votes = params[:min_votes].presence&.to_i
+
+    @max_my_rating = params[:max_my_rating].presence&.to_f
+
+    @show_in_french_theaters = params[:show_in_french_theaters].presence || "yes"
+    @show_in_italian_theaters = params[:show_in_italian_theaters].presence || "yes"
+    @show_at_home = params[:show_at_home].presence || "yes"
+    @show_in_plex = params[:show_in_plex].presence || "yes"
+    @show_already_watched = params[:show_already_watched].presence || "yes"
+    @show_wip = params[:show_wip].presence || "yes"
+    @show_with_preferences = params[:show_with_preferences].presence || "yes"
+    @show_in_collection = params[:show_in_collection].presence || "yes"
+    @show_documentaries = params[:show_documentaries].presence || "yes"
+
+    @language = params[:language].presence&.strip&.downcase
+    @require_language_data = params[:require_language_data] == "1"
+
+    @production_regions = Array(params[:production_regions]).reject(&:blank?)
+    @available_regions = ProductionRegionMapper.all_regions
+
+    @titles = []
+    @awards_by_tconst = {}
+    @error = nil
+
+    if awards_filters_valid?
+      @titles = fetch_award_titles
+      @preferences_by_tconst = fetch_preferences_for_titles(@titles)
+      @awards_by_tconst = fetch_awards_for_titles(@titles)
+    elsif params[:start_year].present?
+      @error = awards_validation_error_message
+    end
+  end
+
   private
 
   def available_title_types
@@ -310,5 +352,97 @@ class TitlesController < ApplicationController
     return scope if @production_regions.empty?
 
     scope.where("title_movie_tmdb.production_region": @production_regions)
+  end
+
+  # Awards page methods
+  def awards_filters_valid?
+    return true unless @start_year && @end_year
+    return false unless @start_year <= @end_year
+
+    true
+  end
+
+  def awards_validation_error_message
+    if @start_year && @end_year && @end_year < @start_year
+      "End year must be greater than or equal to start year"
+    end
+  end
+
+  def fetch_award_titles
+    titles = TitleBasic
+      .select(
+        "title_basics.tconst",
+        "title_basics.original_title",
+        "title_basics.start_year",
+        "title_ratings.average_rating",
+        "title_ratings.num_votes",
+        "title_movie_tmdb.theater_air_date_fr",
+        "title_movie_tmdb.theater_air_date_it",
+        "title_movie_tmdb.home_air_date",
+        "title_movie_tmdb.languages",
+        "title_movie_tmdb.production_region",
+        "CASE WHEN plex_library_items.tconst IS NOT NULL THEN true ELSE false END AS in_plex",
+        "plex_library_items.collections AS plex_collections",
+        "my_ratings.rating AS my_rating"
+      )
+      .joins("LEFT JOIN title_ratings ON title_basics.tconst = title_ratings.tconst")
+      .joins("LEFT JOIN title_movie_tmdb ON title_basics.tconst = title_movie_tmdb.tconst")
+      .joins("LEFT JOIN plex_library_items ON title_basics.tconst = plex_library_items.tconst")
+      .joins("LEFT JOIN my_ratings ON title_basics.tconst = my_ratings.tconst")
+      .joins("INNER JOIN title_awards ON title_basics.tconst = title_awards.tconst")
+      .where(title_type: "movie")
+
+    titles = titles.where(start_year: @start_year..@end_year) if @start_year && @end_year
+
+    titles = titles.where("title_ratings.average_rating >= ?", @min_rating) if @min_rating
+    titles = titles.where("title_ratings.average_rating < ?", @max_rating) if @max_rating
+    titles = titles.where("title_ratings.num_votes >= ?", @min_votes) if @min_votes
+
+    if @max_my_rating
+      titles = titles.where("my_ratings.rating IS NULL OR my_ratings.rating < ?", @max_my_rating)
+    end
+
+    titles = titles.where.not(tconst: BlacklistedTitle.select(:tconst))
+
+    titles = apply_in_french_theaters_filter(titles)
+    titles = apply_in_italian_theaters_filter(titles)
+    titles = apply_at_home_filter(titles)
+    titles = apply_in_plex_filter(titles)
+    titles = apply_already_watched_filter(titles)
+    titles = apply_wip_filter(titles)
+    titles = apply_with_preferences_filter(titles)
+    titles = apply_in_collection_filter(titles)
+    titles = apply_documentaries_filter(titles)
+    titles = apply_language_filter(titles)
+    titles = apply_production_region_filter(titles)
+
+    titles = titles.distinct
+    titles = apply_sorting(titles)
+    titles.limit(500)
+  end
+
+  def fetch_awards_for_titles(titles)
+    return {} if titles.empty?
+
+    tconsts = titles.map(&:tconst)
+    awards = TitleAward.where(tconst: tconsts)
+
+    award_labels = {
+      oscar_best_picture: "Oscar",
+      golden_globe_drama: "GG Drama",
+      golden_globe_musical_comedy: "GG Comedy",
+      golden_globe_foreign: "GG Foreign",
+      golden_globe_animated: "GG Animated",
+      tiff_peoples_choice: "TIFF",
+      cannes_palme_dor: "Palme d'Or",
+      cannes_un_certain_regard: "Un Certain Regard",
+      venice_golden_lion: "Golden Lion",
+      venice_grand_jury: "Venice Grand Jury"
+    }
+
+    awards.each_with_object({}) do |award, hash|
+      won_awards = TitleAward::AWARD_COLUMNS.select { |col| award.send(col) }
+      hash[award.tconst] = won_awards.map { |col| award_labels[col] }.join(", ")
+    end
   end
 end

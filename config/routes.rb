@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   root "home#index"
 
   resources :titles, only: [:index]
+  get "awards", to: "titles#awards"
 
   get "health", to: proc { [200, {}, ["OK"]] }
 end
