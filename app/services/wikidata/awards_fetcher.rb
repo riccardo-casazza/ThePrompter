@@ -95,13 +95,15 @@ module Wikidata
 
       Rails.logger.info "Found #{existing_tconsts.size} matching titles in database out of #{all_imdb_ids.size} award winners"
 
-      # Build records for upsert
+      # Build records for upsert - each record must have all keys
+      default_awards = AWARDS.keys.index_with { false }
+
       records = {}
       results.each do |column, imdb_ids|
         imdb_ids.each do |imdb_id|
           next unless existing_tconsts.include?(imdb_id)
 
-          records[imdb_id] ||= { tconst: imdb_id }
+          records[imdb_id] ||= { tconst: imdb_id, **default_awards }
           records[imdb_id][column] = true
         end
       end
