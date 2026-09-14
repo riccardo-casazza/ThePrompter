@@ -1,0 +1,19 @@
+<% required = local_assigns.fetch(:required, false) %>
+
+<div class="filter-group">
+  <%= label_tag :start_year, "Start Year#{' *' if required}" %>
+  <%= number_field_tag :start_year, @start_year,
+      min: 1900,
+      max: Date.current.year + 5,
+      required: required,
+      placeholder: "e.g. 2020" %>
+</div>
+
+<div class="filter-group">
+  <%= label_tag :end_year, "End Year#{' *' if required}" %>
+  <%= number_field_tag :end_year, @end_year,
+      min: 1900,
+      max: Date.current.year + 5,
+      required: required,
+      placeholder: "e.g. 2024" %>
+</div>

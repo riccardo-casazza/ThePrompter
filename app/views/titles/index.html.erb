@@ -9,24 +9,7 @@
           required: true %>
     </div>
 
-    <div class="filter-group">
-      <%= label_tag :start_year, "Start Year *" %>
-      <%= number_field_tag :start_year, @start_year,
-          min: 1900,
-          max: Date.current.year + 5,
-          required: true,
-          placeholder: "e.g. 2020" %>
-    </div>
-
-    <div class="filter-group">
-      <%= label_tag :end_year, "End Year *" %>
-      <%= number_field_tag :end_year, @end_year,
-          min: 1900,
-          max: Date.current.year + 5,
-          required: true,
-          placeholder: "e.g. 2024" %>
-    </div>
-
+    <%= render "year_filters", required: true %>
     <%= render "rating_filters" %>
     <%= render "show_filters" %>
     <%= render "language_filters" %>
@@ -44,33 +27,10 @@
 <% elsif @titles.any? %>
   <p class="results-count">
     Showing <%= @titles.size %> titles
-    <% if @titles.size == 500 %>
-      (limited to 500 results)
-    <% end %>
+    <% if @titles.size == 500 %>(limited to 500 results)<% end %>
   </p>
 
-  <table>
-    <thead>
-      <tr>
-        <th><%= sort_link("Title", "original_title") %></th>
-        <th><%= sort_link("Year", "start_year") %></th>
-        <th><%= sort_link("IMDB Rating", "average_rating") %></th>
-        <th>My Rating</th>
-        <th><%= sort_link("in French Theaters", "theater_air_date_fr") %></th>
-        <th><%= sort_link("in Italian Theaters", "theater_air_date_it") %></th>
-        <th><%= sort_link("at Home", "home_air_date") %></th>
-        <th><%= sort_link("in Plex", "in_plex") %></th>
-        <th>Languages</th>
-        <th>Region</th>
-        <th>My Preferences</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @titles.each do |title| %>
-        <%= render "title_row", title: title, show_languages: true, preferences_by_tconst: @preferences_by_tconst %>
-      <% end %>
-    </tbody>
-  </table>
+  <%= render "results_table", show_languages: true %>
 <% else %>
   <div class="info">No titles found for the selected criteria.</div>
 <% end %>

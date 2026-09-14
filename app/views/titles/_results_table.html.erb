@@ -1,0 +1,36 @@
+<% show_awards = local_assigns.fetch(:show_awards, false) %>
+<% show_languages = local_assigns.fetch(:show_languages, false) %>
+<% awards_by_tconst = local_assigns.fetch(:awards_by_tconst, {}) %>
+
+<table>
+  <thead>
+    <tr>
+      <th><%= sort_link("Title", "original_title") %></th>
+      <th><%= sort_link("Year", "start_year") %></th>
+      <% if show_awards %>
+        <th>Awards</th>
+      <% end %>
+      <th><%= sort_link("IMDB Rating", "average_rating") %></th>
+      <th>My Rating</th>
+      <th><%= sort_link("in French Theaters", "theater_air_date_fr") %></th>
+      <th><%= sort_link("in Italian Theaters", "theater_air_date_it") %></th>
+      <th><%= sort_link("at Home", "home_air_date") %></th>
+      <th><%= sort_link("in Plex", "in_plex") %></th>
+      <% if show_languages %>
+        <th>Languages</th>
+      <% end %>
+      <th>Region</th>
+      <th>My Preferences</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @titles.each do |title| %>
+      <%= render "title_row",
+          title: title,
+          show_awards: show_awards,
+          show_languages: show_languages,
+          awards_by_tconst: awards_by_tconst,
+          preferences_by_tconst: @preferences_by_tconst %>
+    <% end %>
+  </tbody>
+</table>
