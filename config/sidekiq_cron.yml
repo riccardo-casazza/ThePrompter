@@ -12,3 +12,8 @@ production_region:
   cron: "0 4 * * *"  # Every day at 4:00 AM (after import orchestrator)
   class: "ProductionRegionJob"
   description: "Compute production regions from country and language data"
+
+wikidata_awards:
+  cron: "0 5 * * 0"  # Every Sunday at 5:00 AM
+  class: "WikidataAwardsJob"
+  description: "Fetch film award winners from Wikidata"
