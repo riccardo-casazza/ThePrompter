@@ -1,0 +1,38 @@
+<div class="filter-group filter-checkboxes">
+  <div>
+    <%= label_tag :show_in_french_theaters, "Show in French Theaters" %>
+    <%= select_tag :show_in_french_theaters, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_french_theaters) %>
+  </div>
+  <div>
+    <%= label_tag :show_in_italian_theaters, "Show in Italian Theaters" %>
+    <%= select_tag :show_in_italian_theaters, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_italian_theaters) %>
+  </div>
+  <div>
+    <%= label_tag :show_at_home, "Show at Home" %>
+    <%= select_tag :show_at_home, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_at_home) %>
+  </div>
+  <div>
+    <%= label_tag :show_in_plex, "Show in Plex" %>
+    <%= select_tag :show_in_plex, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_plex) %>
+  </div>
+  <div>
+    <%= label_tag :show_already_watched, "Show Already Watched" %>
+    <%= select_tag :show_already_watched, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_already_watched) %>
+  </div>
+  <div>
+    <%= label_tag :show_wip, "Show WIP" %>
+    <%= select_tag :show_wip, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_wip) %>
+  </div>
+  <div>
+    <%= label_tag :show_with_preferences, "Show with Preferences" %>
+    <%= select_tag :show_with_preferences, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_with_preferences) %>
+  </div>
+  <div>
+    <%= label_tag :show_in_collection, "Show in Collection" %>
+    <%= select_tag :show_in_collection, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_collection) %>
+  </div>
+  <div>
+    <%= label_tag :show_documentaries, "Show Documentaries" %>
+    <%= select_tag :show_documentaries, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_documentaries) %>
+  </div>
+</div>

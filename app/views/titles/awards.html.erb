@@ -18,94 +18,9 @@
           placeholder: "e.g. 2024" %>
     </div>
 
-    <div class="filter-group">
-      <%= label_tag :min_rating, "Min IMDB Rating" %>
-      <%= number_field_tag :min_rating, @min_rating,
-          min: 0,
-          max: 10,
-          step: 0.1,
-          placeholder: "e.g. 7.0" %>
-    </div>
-
-    <div class="filter-group">
-      <%= label_tag :max_rating, "Max IMDB Rating" %>
-      <%= number_field_tag :max_rating, @max_rating,
-          min: 0,
-          max: 10,
-          step: 0.1,
-          placeholder: "e.g. 7.0" %>
-    </div>
-
-    <div class="filter-group">
-      <%= label_tag :min_votes, "Min Votes" %>
-      <%= number_field_tag :min_votes, @min_votes,
-          min: 0,
-          placeholder: "e.g. 10000" %>
-    </div>
-
-    <div class="filter-group filter-checkboxes">
-      <div>
-        <%= label_tag :show_in_french_theaters, "Show in French Theaters" %>
-        <%= select_tag :show_in_french_theaters, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_french_theaters) %>
-      </div>
-      <div>
-        <%= label_tag :show_in_italian_theaters, "Show in Italian Theaters" %>
-        <%= select_tag :show_in_italian_theaters, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_italian_theaters) %>
-      </div>
-      <div>
-        <%= label_tag :show_at_home, "Show at Home" %>
-        <%= select_tag :show_at_home, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_at_home) %>
-      </div>
-      <div>
-        <%= label_tag :show_in_plex, "Show in Plex" %>
-        <%= select_tag :show_in_plex, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_plex) %>
-      </div>
-      <div>
-        <%= label_tag :show_already_watched, "Show Already Watched" %>
-        <%= select_tag :show_already_watched, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_already_watched) %>
-      </div>
-      <div>
-        <%= label_tag :show_wip, "Show WIP" %>
-        <%= select_tag :show_wip, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_wip) %>
-      </div>
-      <div>
-        <%= label_tag :show_with_preferences, "Show with Preferences" %>
-        <%= select_tag :show_with_preferences, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_with_preferences) %>
-      </div>
-      <div>
-        <%= label_tag :show_in_collection, "Show in Collection" %>
-        <%= select_tag :show_in_collection, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_in_collection) %>
-      </div>
-      <div>
-        <%= label_tag :show_documentaries, "Show Documentaries" %>
-        <%= select_tag :show_documentaries, options_for_select([["No", "no"], ["Yes", "yes"], ["Only", "only"]], @show_documentaries) %>
-      </div>
-    </div>
-
-    <div class="filter-group">
-      <%= label_tag :language, "Language (ISO code)" %>
-      <%= text_field_tag :language, @language,
-          placeholder: "e.g., en, fr, it",
-          maxlength: 10 %>
-    </div>
-
-    <div class="filter-group">
-      <%= check_box_tag :require_language_data, "1", @require_language_data %>
-      <%= label_tag :require_language_data, "Only show titles with language data" %>
-    </div>
-
-    <fieldset class="filter-group">
-      <legend>Production Regions</legend>
-      <div class="region-checkboxes">
-        <% @available_regions.each do |region| %>
-          <label class="region-checkbox">
-            <%= check_box_tag "production_regions[]", region, @production_regions.include?(region) %>
-            <%= region %>
-          </label>
-        <% end %>
-      </div>
-      <small>Leave all unchecked to show all regions</small>
-    </fieldset>
+    <%= render "rating_filters" %>
+    <%= render "show_filters" %>
+    <%= render "language_filters" %>
 
     <button type="submit">Search</button>
   <% end %>
@@ -139,19 +54,7 @@
     </thead>
     <tbody>
       <% @titles.each do |title| %>
-        <tr>
-          <td><%= link_to title.original_title, "https://www.imdb.com/title/#{title.tconst}", target: "_blank" %></td>
-          <td><%= title.start_year %></td>
-          <td><%= @awards_by_tconst[title.tconst] %></td>
-          <td><%= title.average_rating ? "#{title.average_rating} (#{number_with_delimiter(title.num_votes)})" : "" %></td>
-          <td><%= title.my_rating %></td>
-          <td><%= title.theater_air_date_fr %></td>
-          <td><%= title.theater_air_date_it %></td>
-          <td><%= title.home_air_date %></td>
-          <td><%= title.in_plex ? "✓" : "" %></td>
-          <td><%= title.production_region %></td>
-          <td><%= @preferences_by_tconst[title.tconst] %></td>
-        </tr>
+        <%= render "title_row", title: title, show_awards: true, awards_by_tconst: @awards_by_tconst, preferences_by_tconst: @preferences_by_tconst %>
       <% end %>
     </tbody>
   </table>

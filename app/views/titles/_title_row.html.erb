@@ -1,0 +1,18 @@
+<tr>
+  <td><%= link_to title.original_title, "https://www.imdb.com/title/#{title.tconst}", target: "_blank" %></td>
+  <td><%= title.start_year %></td>
+  <% if local_assigns[:show_awards] %>
+    <td><%= awards_by_tconst[title.tconst] %></td>
+  <% end %>
+  <td><%= title.average_rating ? "#{title.average_rating} (#{number_with_delimiter(title.num_votes)})" : "" %></td>
+  <td><%= title.my_rating %></td>
+  <td><%= title.theater_air_date_fr %></td>
+  <td><%= title.theater_air_date_it %></td>
+  <td><%= title.home_air_date %></td>
+  <td><%= title.in_plex ? "✓" : "" %></td>
+  <% if local_assigns[:show_languages] %>
+    <td><%= title.languages %></td>
+  <% end %>
+  <td><%= title.production_region %></td>
+  <td><%= preferences_by_tconst[title.tconst] %></td>
+</tr>

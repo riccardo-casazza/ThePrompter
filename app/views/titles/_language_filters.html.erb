@@ -1,0 +1,24 @@
+<div class="filter-group">
+  <%= label_tag :language, "Language (ISO code)" %>
+  <%= text_field_tag :language, @language,
+      placeholder: "e.g., en, fr, it",
+      maxlength: 10 %>
+</div>
+
+<div class="filter-group">
+  <%= check_box_tag :require_language_data, "1", @require_language_data %>
+  <%= label_tag :require_language_data, "Only show titles with language data" %>
+</div>
+
+<fieldset class="filter-group">
+  <legend>Production Regions</legend>
+  <div class="region-checkboxes">
+    <% @available_regions.each do |region| %>
+      <label class="region-checkbox">
+        <%= check_box_tag "production_regions[]", region, @production_regions.include?(region) %>
+        <%= region %>
+      </label>
+    <% end %>
+  </div>
+  <small>Leave all unchecked to show all regions</small>
+</fieldset>
